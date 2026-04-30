@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "monorepo": true,
+  "root": "apps/profile-crud",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/profile-crud/tsconfig.app.json"
+  },
+  "projects": {
+    "profile-crud": {
+      "type": "application",
+      "root": "apps/profile-crud",
+      "entryFile": "main",
+      "sourceRoot": "apps/profile-crud/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/profile-crud/tsconfig.app.json"
+      }
+    },
+    "profile-query": {
+      "type": "application",
+      "root": "apps/profile-query",
+      "entryFile": "main",
+      "sourceRoot": "apps/profile-query/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/profile-query/tsconfig.app.json"
+      }
+    }
+  }
+}

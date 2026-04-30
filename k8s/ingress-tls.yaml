@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: profile-query
+  namespace: profile-ms
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-protocols: "TLSv1.2 TLSv1.3"
+spec:
+  tls:
+    - hosts:
+        - profiles.example.com
+      secretName: profile-query-tls
+  rules:
+    - host: profiles.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: profile-query
+                port:
+                  number: 3000

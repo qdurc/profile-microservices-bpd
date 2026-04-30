@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: profile-crud
+  namespace: profile-ms
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: profile-crud
+  template:
+    metadata:
+      labels:
+        app: profile-crud
+    spec:
+      containers:
+        - name: profile-crud
+          image: profile-crud:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3001
+          env:
+            - name: MONGO_URI
+              value: mongodb://mongo:27017/profiles
+            - name: PROFILE_CRUD_PORT
+              value: "3001"
+          envFrom:
+            - secretRef:
+                name: profile-security
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: profile-crud
+  namespace: profile-ms
+spec:
+  selector:
+    app: profile-crud
+  ports:
+    - port: 3001
+      targetPort: 3001

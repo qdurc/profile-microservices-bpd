@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: profile-query
+  namespace: profile-ms
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: profile-query
+  template:
+    metadata:
+      labels:
+        app: profile-query
+    spec:
+      containers:
+        - name: profile-query
+          image: profile-query:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          env:
+            - name: PROFILE_QUERY_PORT
+              value: "3000"
+            - name: PROFILE_CRUD_BASE_URL
+              value: http://profile-crud:3001
+          envFrom:
+            - secretRef:
+                name: profile-security
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: profile-query
+  namespace: profile-ms
+spec:
+  type: LoadBalancer
+  selector:
+    app: profile-query
+  ports:
+    - port: 3000
+      targetPort: 3000

@@ -1,0 +1,456 @@
+{
+  "info": {
+    "name": "Profile Microservices",
+    "description": "Collection for the BPD technical test profile microservices. Includes Basic Auth, Key Pair HMAC headers, and profile token usage.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "profileId",
+      "value": ""
+    },
+    {
+      "key": "profileToken",
+      "value": "",
+      "type": "secret"
+    }
+  ],
+  "item": [
+    {
+      "name": "MS #2 - Create Profile",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "function getCollectionVariable(key) {",
+              "  return pm.collectionVariables.get(key) || pm.environment.get(key) || pm.variables.get(key);",
+              "}",
+              "",
+              "function signKeyPairRequest(method, path) {",
+              "  const keySecret = getCollectionVariable('keyPairSecret');",
+              "  const timestamp = new Date().toISOString();",
+              "  const message = `${method.toUpperCase()}:${path}:${timestamp}`;",
+              "  const signature = CryptoJS.HmacSHA256(message, keySecret).toString(CryptoJS.enc.Hex);",
+              "",
+              "  pm.collectionVariables.set('keyTimestamp', timestamp);",
+              "  pm.collectionVariables.set('keySignature', signature);",
+              "}",
+              "",
+              "signKeyPairRequest('POST', '/create-profile');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Profile created', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "",
+              "const json = pm.response.json();",
+              "if (json.profile && json.profile.id) {",
+              "  pm.collectionVariables.set('profileId', json.profile.id);",
+              "}",
+              "if (json.token) {",
+              "  pm.collectionVariables.set('profileToken', json.token);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{basicUser}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{basicPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-key-id",
+            "value": "{{keyPairId}}"
+          },
+          {
+            "key": "x-key-timestamp",
+            "value": "{{keyTimestamp}}"
+          },
+          {
+            "key": "x-key-signature",
+            "value": "{{keySignature}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"Ana\",\n  \"lastName\": \"Perez\",\n  \"email\": \"ana.perez{{$timestamp}}@example.com\",\n  \"phone\": \"8095551234\",\n  \"address\": \"Santo Domingo\"\n}"
+        },
+        "url": {
+          "raw": "{{crudBaseUrl}}/create-profile",
+          "host": [
+            "{{crudBaseUrl}}"
+          ],
+          "path": [
+            "create-profile"
+          ]
+        },
+        "description": "Creates a profile in the CRUD microservice. Stores profileId and profileToken for the next requests."
+      },
+      "response": []
+    },
+    {
+      "name": "MS #1 - Get Profile",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "function getCollectionVariable(key) {",
+              "  return pm.collectionVariables.get(key) || pm.environment.get(key) || pm.variables.get(key);",
+              "}",
+              "",
+              "function signKeyPairRequest(method, path) {",
+              "  const keySecret = getCollectionVariable('keyPairSecret');",
+              "  const timestamp = new Date().toISOString();",
+              "  const message = `${method.toUpperCase()}:${path}:${timestamp}`;",
+              "  const signature = CryptoJS.HmacSHA256(message, keySecret).toString(CryptoJS.enc.Hex);",
+              "",
+              "  pm.collectionVariables.set('keyTimestamp', timestamp);",
+              "  pm.collectionVariables.set('keySignature', signature);",
+              "}",
+              "",
+              "signKeyPairRequest('GET', `/get-profile/${pm.collectionVariables.get('profileId')}`);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Profile returned', function () {",
+              "  pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{basicUser}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{basicPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "x-key-id",
+            "value": "{{keyPairId}}"
+          },
+          {
+            "key": "x-key-timestamp",
+            "value": "{{keyTimestamp}}"
+          },
+          {
+            "key": "x-key-signature",
+            "value": "{{keySignature}}"
+          }
+        ],
+        "url": {
+          "raw": "{{queryBaseUrl}}/get-profile/{{profileId}}",
+          "host": [
+            "{{queryBaseUrl}}"
+          ],
+          "path": [
+            "get-profile",
+            "{{profileId}}"
+          ]
+        },
+        "description": "Queries a profile through MS #1. MS #1 signs and calls MS #2 internally."
+      },
+      "response": []
+    },
+    {
+      "name": "MS #2 - Update Profile",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "function getCollectionVariable(key) {",
+              "  return pm.collectionVariables.get(key) || pm.environment.get(key) || pm.variables.get(key);",
+              "}",
+              "",
+              "function signKeyPairRequest(method, path) {",
+              "  const keySecret = getCollectionVariable('keyPairSecret');",
+              "  const timestamp = new Date().toISOString();",
+              "  const message = `${method.toUpperCase()}:${path}:${timestamp}`;",
+              "  const signature = CryptoJS.HmacSHA256(message, keySecret).toString(CryptoJS.enc.Hex);",
+              "",
+              "  pm.collectionVariables.set('keyTimestamp', timestamp);",
+              "  pm.collectionVariables.set('keySignature', signature);",
+              "}",
+              "",
+              "signKeyPairRequest('PUT', `/update-profile/${pm.collectionVariables.get('profileId')}`);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Profile updated', function () {",
+              "  pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{basicUser}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{basicPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-key-id",
+            "value": "{{keyPairId}}"
+          },
+          {
+            "key": "x-key-timestamp",
+            "value": "{{keyTimestamp}}"
+          },
+          {
+            "key": "x-key-signature",
+            "value": "{{keySignature}}"
+          },
+          {
+            "key": "x-profile-token",
+            "value": "{{profileToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"8095559999\",\n  \"address\": \"Santiago\"\n}"
+        },
+        "url": {
+          "raw": "{{crudBaseUrl}}/update-profile/{{profileId}}",
+          "host": [
+            "{{crudBaseUrl}}"
+          ],
+          "path": [
+            "update-profile",
+            "{{profileId}}"
+          ]
+        },
+        "description": "Updates a profile. Requires the token returned by Create Profile."
+      },
+      "response": []
+    },
+    {
+      "name": "MS #2 - Delete Profile",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "function getCollectionVariable(key) {",
+              "  return pm.collectionVariables.get(key) || pm.environment.get(key) || pm.variables.get(key);",
+              "}",
+              "",
+              "function signKeyPairRequest(method, path) {",
+              "  const keySecret = getCollectionVariable('keyPairSecret');",
+              "  const timestamp = new Date().toISOString();",
+              "  const message = `${method.toUpperCase()}:${path}:${timestamp}`;",
+              "  const signature = CryptoJS.HmacSHA256(message, keySecret).toString(CryptoJS.enc.Hex);",
+              "",
+              "  pm.collectionVariables.set('keyTimestamp', timestamp);",
+              "  pm.collectionVariables.set('keySignature', signature);",
+              "}",
+              "",
+              "signKeyPairRequest('DELETE', `/delete-profile/${pm.collectionVariables.get('profileId')}`);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Profile deleted', function () {",
+              "  pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{basicUser}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{basicPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "x-key-id",
+            "value": "{{keyPairId}}"
+          },
+          {
+            "key": "x-key-timestamp",
+            "value": "{{keyTimestamp}}"
+          },
+          {
+            "key": "x-key-signature",
+            "value": "{{keySignature}}"
+          },
+          {
+            "key": "x-profile-token",
+            "value": "{{profileToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{crudBaseUrl}}/delete-profile/{{profileId}}",
+          "host": [
+            "{{crudBaseUrl}}"
+          ],
+          "path": [
+            "delete-profile",
+            "{{profileId}}"
+          ]
+        },
+        "description": "Deletes a profile. Requires the token returned by Create Profile."
+      },
+      "response": []
+    },
+    {
+      "name": "MS #2 - Internal Get Profile",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "function getCollectionVariable(key) {",
+              "  return pm.collectionVariables.get(key) || pm.environment.get(key) || pm.variables.get(key);",
+              "}",
+              "",
+              "function signKeyPairRequest(method, path) {",
+              "  const keySecret = getCollectionVariable('keyPairSecret');",
+              "  const timestamp = new Date().toISOString();",
+              "  const message = `${method.toUpperCase()}:${path}:${timestamp}`;",
+              "  const signature = CryptoJS.HmacSHA256(message, keySecret).toString(CryptoJS.enc.Hex);",
+              "",
+              "  pm.collectionVariables.set('keyTimestamp', timestamp);",
+              "  pm.collectionVariables.set('keySignature', signature);",
+              "}",
+              "",
+              "signKeyPairRequest('GET', `/profiles/${pm.collectionVariables.get('profileId')}`);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "x-key-id",
+            "value": "{{keyPairId}}"
+          },
+          {
+            "key": "x-key-timestamp",
+            "value": "{{keyTimestamp}}"
+          },
+          {
+            "key": "x-key-signature",
+            "value": "{{keySignature}}"
+          }
+        ],
+        "url": {
+          "raw": "{{crudBaseUrl}}/profiles/{{profileId}}",
+          "host": [
+            "{{crudBaseUrl}}"
+          ],
+          "path": [
+            "profiles",
+            "{{profileId}}"
+          ]
+        },
+        "description": "Internal CRUD profile lookup. Included for testing the internal endpoint directly."
+      },
+      "response": []
+    }
+  ],
+  "event": [],
+  "auth": {
+    "type": "basic",
+    "basic": [
+      {
+        "key": "username",
+        "value": "{{basicUser}}",
+        "type": "string"
+      },
+      {
+        "key": "password",
+        "value": "{{basicPassword}}",
+        "type": "string"
+      }
+    ]
+  }
+}
