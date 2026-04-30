@@ -52,6 +52,15 @@ export class ProfilesService {
     return this.toResponse(profile);
   }
 
+  async findAll() {
+    const profiles = await this.profileModel
+      .find()
+      .sort({ createdAt: -1 })
+      .exec();
+
+    return profiles.map((profile) => this.toResponse(profile));
+  }
+
   async update(id: string, dto: UpdateProfileDto, token: string | undefined) {
     await this.assertToken(id, token);
 

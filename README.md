@@ -5,7 +5,7 @@ Prueba tecnica desarrollada con NestJS, TypeScript, MongoDB, Docker y Kubernetes
 La solucion separa la consulta de perfiles de la gestion CRUD:
 
 - `profile-query`: recibe `GET /get-profile/:id`.
-- `profile-crud`: crea, consulta, actualiza y elimina perfiles en MongoDB.
+- `profile-crud`: crea, lista, consulta, actualiza y elimina perfiles en MongoDB.
 
 La comunicacion usa Basic Auth, Key Pair con firma HMAC y token de perfil para operaciones sensibles.
 
@@ -40,6 +40,7 @@ docker compose down
 | --- | --- | --- | --- |
 | `profile-query` | GET | `/get-profile/:id` | Consulta publica del perfil |
 | `profile-crud` | POST | `/create-profile` | Crear perfil |
+| `profile-crud` | GET | `/profiles` | Listar perfiles |
 | `profile-crud` | GET | `/profiles/:id` | Consulta interna |
 | `profile-crud` | PUT | `/update-profile/:id` | Actualizar perfil |
 | `profile-crud` | DELETE | `/delete-profile/:id` | Eliminar perfil |

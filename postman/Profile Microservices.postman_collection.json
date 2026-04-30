@@ -123,6 +123,100 @@
       "response": []
     },
     {
+      "name": "MS #2 - Get Profiles",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "function getVariable(key) {",
+              "  return pm.environment.get(key) || pm.collectionVariables.get(key) || pm.variables.get(key);",
+              "}",
+              "",
+              "function requireVariable(key) {",
+              "  const value = getVariable(key);",
+              "  if (!value) {",
+              "    throw new Error(`Missing Postman variable: ${key}. Select the Profile Microservices Local environment or fill this variable.`);",
+              "  }",
+              "  return value;",
+              "}",
+              "",
+              "function signKeyPairRequest(method, path) {",
+              "  const keySecret = requireVariable('keyPairSecret');",
+              "  const timestamp = new Date().toISOString();",
+              "  const message = `${method.toUpperCase()}:${path}:${timestamp}`;",
+              "  const signature = CryptoJS.HmacSHA256(message, keySecret).toString(CryptoJS.enc.Hex);",
+              "",
+              "  pm.collectionVariables.set('keyTimestamp', timestamp);",
+              "  pm.collectionVariables.set('keySignature', signature);",
+              "}",
+              "",
+              "signKeyPairRequest('GET', '/profiles');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Profiles returned', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response is an array', function () {",
+              "  pm.expect(pm.response.json()).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{basicUser}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{basicPassword}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "x-key-id",
+            "value": "{{keyPairId}}"
+          },
+          {
+            "key": "x-key-timestamp",
+            "value": "{{keyTimestamp}}"
+          },
+          {
+            "key": "x-key-signature",
+            "value": "{{keySignature}}"
+          }
+        ],
+        "url": {
+          "raw": "{{crudBaseUrl}}/profiles",
+          "host": [
+            "{{crudBaseUrl}}"
+          ],
+          "path": [
+            "profiles"
+          ]
+        },
+        "description": "Lists all profiles registered in MongoDB through the CRUD microservice."
+      },
+      "response": []
+    },
+    {
       "name": "MS #1 - Get Profile",
       "event": [
         {

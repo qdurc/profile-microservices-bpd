@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Headers, Param, Post, Put, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Headers,
+  Param,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import {
   BasicAuthGuard,
   KeyPairGuard,
@@ -15,6 +25,12 @@ export class ProfilesController {
   @UseGuards(BasicAuthGuard, KeyPairGuard)
   create(@Body() dto: CreateProfileDto) {
     return this.profilesService.create(dto);
+  }
+
+  @Get('profiles')
+  @UseGuards(BasicAuthGuard, KeyPairGuard)
+  findAll() {
+    return this.profilesService.findAll();
   }
 
   @Get('profiles/:id')
