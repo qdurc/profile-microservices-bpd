@@ -394,7 +394,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"phone\": \"8095559999\",\n  \"address\": \"Santiago\"\n}"
+          "raw": "{\n  \"firstName\": \"Ana Maria\",\n  \"lastName\": \"Perez\",\n  \"email\": \"ana.updated@example.com\",\n  \"phone\": \"8095559999\",\n  \"address\": \"Santiago\"\n}"
         },
         "url": {
           "raw": "{{crudBaseUrl}}/update-profile/{{profileId}}",
